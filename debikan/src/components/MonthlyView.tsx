@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, Button, FlatList, StyleSheet, TextInput, Switch, TouchableOpacity } from 'react-native';
+import { View, Text, Button, FlatList, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import DatePicker from 'react-native-date-picker';
+import CheckBox from '@react-native-community/checkbox';
 import { getItems, getMonthlyAmountsByMonth, saveMonthlyAmount } from '../Database';
 import { debounce } from 'lodash';
 
@@ -140,7 +141,7 @@ const MonthlyView = () => {
             value={item.amount}
             onChangeText={handleAmountChange}
           />
-          <Switch
+          <CheckBox
             value={item.paid}
             onValueChange={handlePaidChange}
           />
