@@ -70,8 +70,6 @@ const MonthlyView = () => {
 
   }, [items, monthlyAmounts, currentDate]);
 
-  }, [items, monthlyAmounts, currentDate]);
-
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)));
   };
@@ -174,6 +172,11 @@ const MonthlyView = () => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         ListHeaderComponent={<View style={styles.listHeader}><Text style={styles.listHeaderText}>支払項目</Text><Text style={styles.listHeaderText}>金額と支払状況</Text></View>}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>支払い項目を登録してください。</Text>
+          </View>
+        }
       />
 
       {editingItem && (
@@ -252,6 +255,16 @@ const styles = StyleSheet.create({
         color: '#777',
         textAlign: 'center',
         paddingVertical: 10,
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 50,
+    },
+    emptyText: {
+        fontSize: 16,
+        color: '#777',
     },
     listHeader: {
         flexDirection: 'row',
