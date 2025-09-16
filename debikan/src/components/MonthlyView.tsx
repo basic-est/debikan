@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Button, FlatList, StyleSheet, TextInput, Switch, TouchableOpacity } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import DatePicker from 'react-native-date-picker';
 import { getItems, getMonthlyAmountsByMonth, saveMonthlyAmount } from '../Database';
 import { debounce } from 'lodash';
@@ -15,20 +16,18 @@ const MonthlyView = () => {
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
-  const loadData = () => {
-    const month = currentDate.getMonth() + 1;
-    const year = currentDate.getFullYear();
-    Promise.all([getItems(), getMonthlyAmountsByMonth(month, year)])
-      .then(([fetchedItems, fetchedAmounts]) => {
-        setItems(fetchedItems);
-        setMonthlyAmounts(fetchedAmounts);
-      })
-      .catch(console.error);
-  };
-
-  useEffect(() => {
-    loadData();
-  }, [currentDate]);
+  useFocusEffect(
+    useCallback(() => {
+      const month = currentDate.getMonth() + 1;
+      const year = currentDate.getFullYear();
+      Promise.all([getItems(), getMonthlyAmountsByMonth(month, year)])
+        .then(([fetchedItems, fetchedAmounts]) => {
+          setItems(fetchedItems);
+          setMonthlyAmounts(fetchedAmounts);
+        })
+        .catch(console.error);
+    }, [currentDate])
+  );
 
   useEffect(() => {
     const month = currentDate.getMonth() + 1;
@@ -40,8 +39,6 @@ const MonthlyView = () => {
       if (amountData.date) {
         itemDate = new Date(amountData.date);
       } else {
-        // If no date is saved for the month, use the default day.
-        // Fallback to the 1st if no default day is set.
         const day = item.default_day || 1;
         itemDate = new Date(year, month - 1, day);
       }
@@ -59,11 +56,22 @@ const MonthlyView = () => {
     const summaryData = unpaidItems.reduce((acc, item) => {
       const account = item.account || 'Unknown';
       if (!acc[account]) {
-        acc[account] = { total: 0, latestDate: item.date };
+        acc[account] = {};
       }
-      acc[account].total += parseInt(item.amount, 10);
-      // The list is sorted by date, so the last item will have the latest date.
-      acc[account].latestDate = item.date;
+
+      const itemDateStr = item.date.toISOString().split('T')[0];
+
+      if (!acc[account][itemDateStr]) {
+        acc[account][itemDateStr] = {
+          total: 0,
+          names: [],
+          date: item.date,
+        };
+      }
+
+      acc[account][itemDateStr].total += parseInt(item.amount, 10);
+      acc[account][itemDateStr].names.push(item.name);
+
       return acc;
     }, {});
     setSummary(summaryData);
@@ -152,19 +160,37 @@ const MonthlyView = () => {
       </View>
 
       <View style={styles.summaryContainer}>
-          <Text style={styles.summaryTitle}>口座別 未払い合計</Text>
-          {Object.keys(summary).length > 0 ? (
-            Object.entries(summary).map(([account, data]) => (
-                <View style={styles.summaryItem} key={account}>
-                    <Text style={styles.summaryAccount}>{account}</Text>
-                    <Text style={styles.summaryTotal}>
-                        {`→ ${data.latestDate.getDate()}日までに合計 ¥${data.total.toLocaleString()} が必要`}
+        <Text style={styles.summaryTitle}>口座別 未払い合計</Text>
+        {Object.keys(summary).length > 0 ? (
+          Object.entries(summary).map(([account, dateGroups]) => {
+            const paymentsByDate = Object.values(dateGroups).sort((a, b) => a.date.getTime() - b.date.getTime());
+            const totalForAccount = paymentsByDate.reduce((sum, p) => sum + p.total, 0);
+
+            if (paymentsByDate.length === 0) {
+                return null;
+            }
+
+            const lastPaymentDate = paymentsByDate[paymentsByDate.length - 1].date;
+
+            return (
+              <View style={styles.summaryAccountContainer} key={account}>
+                <Text style={styles.summaryAccount}>{account}</Text>
+                {paymentsByDate.map((payment, index) => (
+                  <View style={styles.summaryItem} key={index}>
+                    <Text style={styles.summaryItemText}>
+                      {`${payment.date.getDate()}日: ¥${payment.total.toLocaleString()} (${payment.names.join(', ')})`}
                     </Text>
-                </View>
-            ))
-          ) : (
-            <Text style={styles.summaryEmpty}>未払いの項目はありません。</Text>
-          )}
+                  </View>
+                ))}
+                <Text style={styles.summaryTotal}>
+                  {`→ ${lastPaymentDate.getDate()}日までに合計 ¥${totalForAccount.toLocaleString()} が必要`}
+                </Text>
+              </View>
+            );
+          })
+        ) : (
+          <Text style={styles.summaryEmpty}>未払いの項目はありません。</Text>
+        )}
       </View>
 
       <FlatList
@@ -236,19 +262,31 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         color: '#333',
     },
-    summaryItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: 5,
+    summaryAccountContainer: {
+        marginBottom: 15,
     },
     summaryAccount: {
         fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 5,
+    },
+    summaryItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingLeft: 10,
+        paddingVertical: 2,
+    },
+    summaryItemText: {
+        fontSize: 14,
         color: '#555',
     },
     summaryTotal: {
+        marginTop: 5,
         fontSize: 16,
         fontWeight: 'bold',
         color: '#d9534f',
+        textAlign: 'right',
     },
     summaryEmpty: {
         fontSize: 14,
