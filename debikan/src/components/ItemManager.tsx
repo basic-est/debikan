@@ -19,6 +19,17 @@ const ItemManager = () => {
     loadItems();
   }, []);
 
+  const handleDayChange = (setter) => (text) => {
+    if (text === '') {
+        setter('');
+        return;
+    }
+    const num = parseInt(text, 10);
+    if (!isNaN(num) && num >= 1 && num <= 28) {
+        setter(text);
+    }
+  };
+
   const loadItems = () => {
     getItems()
       .then(setItems)
@@ -98,10 +109,10 @@ const ItemManager = () => {
         />
         <TextInput
           style={styles.input}
-          placeholder="デフォルト支払日 (例: 27)"
+          placeholder="デフォルト支払日 (1-28)"
           keyboardType="numeric"
           value={defaultDay}
-          onChangeText={setDefaultDay}
+          onChangeText={handleDayChange(setDefaultDay)}
         />
         <Button title="追加" onPress={handleAddItem} />
       </View>
@@ -122,23 +133,23 @@ const ItemManager = () => {
           <View style={styles.modalView}>
             <Text style={styles.modalText}>項目を編集</Text>
             <TextInput
-              style={styles.input}
+              style={styles.modalInput}
               placeholder="項目名"
               value={editingName}
               onChangeText={setEditingName}
             />
             <TextInput
-              style={styles.input}
+              style={styles.modalInput}
               placeholder="引き落とし口座"
               value={editingAccount}
               onChangeText={setEditingAccount}
             />
             <TextInput
-              style={styles.input}
-              placeholder="デフォルト支払日"
+              style={styles.modalInput}
+              placeholder="デフォルト支払日 (1-28)"
               keyboardType="numeric"
               value={editingDefaultDay}
-              onChangeText={setEditingDefaultDay}
+              onChangeText={handleDayChange(setEditingDefaultDay)}
             />
             <View style={styles.modalButtons}>
               <Button title="保存" onPress={handleUpdateItem} />
@@ -210,6 +221,7 @@ const styles = StyleSheet.create({
     marginTop: 22,
   },
   modalView: {
+    width: '80%',
     margin: 20,
     backgroundColor: 'white',
     borderRadius: 20,
@@ -223,6 +235,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+  },
+  modalInput: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 8,
+    marginBottom: 8,
+    borderRadius: 4,
   },
   modalText: {
     marginBottom: 15,
