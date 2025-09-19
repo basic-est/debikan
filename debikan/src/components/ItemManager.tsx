@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, FlatList, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/Feather';
 import { getItems, addItem, deleteItem, updateItem } from '../Database';
 
 const ItemManager = () => {
@@ -85,8 +86,12 @@ const ItemManager = () => {
         {item.default_day && <Text style={styles.itemDefaultDay}>毎月{item.default_day}日払い</Text>}
       </View>
       <View style={styles.itemActionsContainer}>
-        <Button title="編集" onPress={() => handleEditItem(item)} />
-        <Button title="削除" onPress={() => handleDeleteItem(item.id)} color="red" />
+        <TouchableOpacity onPress={() => handleEditItem(item)} style={styles.iconButton}>
+          <Icon name="edit" size={20} color="#007BFF" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleDeleteItem(item.id)} style={[styles.iconButton, { marginLeft: 16 }]}>
+          <Icon name="trash-2" size={20} color="#DC3545" />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -213,6 +218,9 @@ const styles = StyleSheet.create({
   },
   itemActionsContainer: {
     flexDirection: 'row',
+  },
+  iconButton: {
+    padding: 8,
   },
   centeredView: {
     flex: 1,
