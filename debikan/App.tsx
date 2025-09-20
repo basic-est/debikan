@@ -3,21 +3,26 @@ import {
   Text,
   View,
   StatusBar,
-  useColorScheme
+  useColorScheme,
+  TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Feather from 'react-native-vector-icons/Feather';
 
 import { initDB } from './src/Database';
 import ItemManager from './src/components/ItemManager';
 import MonthlyView from './src/components/MonthlyView';
+import SettingsScreen from './src/components/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 
 function App(): React.JSX.Element {
   const [dbInitialized, setDbInitialized] = useState(false);
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const isDarkMode = useColorScheme() === 'dark';
 
   useEffect(() => {
@@ -45,6 +50,15 @@ function App(): React.JSX.Element {
     );
   }
 
+  const headerRightButton = () => (
+    <TouchableOpacity
+      onPress={() => setIsSettingsVisible(true)}
+      style={{ marginRight: 16 }}
+    >
+      <Feather name="settings" size={22} color="gray" />
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaProvider>
       <NavigationContainer>
@@ -63,6 +77,7 @@ function App(): React.JSX.Element {
             },
             tabBarActiveTintColor: 'tomato',
             tabBarInactiveTintColor: 'gray',
+            headerRight: headerRightButton,
           })}
         >
           <Tab.Screen 
@@ -77,6 +92,13 @@ function App(): React.JSX.Element {
           />
         </Tab.Navigator>
       </NavigationContainer>
+      <Modal
+        animationType="slide"
+        visible={isSettingsVisible}
+        onRequestClose={() => setIsSettingsVisible(false)}
+      >
+        <SettingsScreen onClose={() => setIsSettingsVisible(false)} />
+      </Modal>
     </SafeAreaProvider>
   );
 }

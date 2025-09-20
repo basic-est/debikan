@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, FlatList, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Button, FlatList, StyleSheet, Modal, TouchableOpacity, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { getItems, addItem, deleteItem, updateItem } from '../Database';
 
@@ -52,9 +52,26 @@ const ItemManager = () => {
   };
 
   const handleDeleteItem = (id) => {
-    deleteItem(id)
-      .then(loadItems)
-      .catch(console.error);
+    Alert.alert(
+      "項目を削除",
+      "この項目を削除すると、登録済みの月次金額もすべて削除されます。よろしいですか？",
+      [
+        {
+          text: "キャンセル",
+          style: "cancel"
+        },
+        {
+          text: "削除",
+          onPress: () => {
+            deleteItem(id)
+              .then(loadItems)
+              .catch(console.error);
+          },
+          style: "destructive"
+        }
+      ],
+      { cancelable: false }
+    );
   };
 
   const handleEditItem = (item) => {
@@ -119,7 +136,7 @@ const ItemManager = () => {
           value={defaultDay}
           onChangeText={handleDayChange(setDefaultDay)}
         />
-        <Button title="追加" onPress={handleAddItem} />
+        <Button title="追加" onPress={handleAddItem} disabled={!name || !account} />
       </View>
       <FlatList
         data={items}
