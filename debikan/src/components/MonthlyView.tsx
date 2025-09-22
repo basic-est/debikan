@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Button, FlatList, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import DatePicker from 'react-native-date-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import CheckBox from '@react-native-community/checkbox';
 import { getItems, getMonthlyAmountsByMonth, saveMonthlyAmount } from '../Database';
 import { debounce } from 'lodash';
@@ -206,24 +206,19 @@ const MonthlyView = () => {
         }
       />
 
-      {editingItem && (
-        <DatePicker
-            modal
-            open={isDatePickerVisible}
-            date={editingItem.date}
-            mode="date"
-            onConfirm={(date) => {
-                setDatePickerVisible(false);
-                const newData = displayData.map(d => d.id === editingItem.id ? { ...d, date } : d);
-                setDisplayData(newData);
-                handleSave(editingItem, editingItem.amount, editingItem.paid, date);
-            }}
-            onCancel={() => {
-                setDatePickerVisible(false);
-            }}
-            title="引き落とし日を選択"
-            confirmText="決定"
-            cancelText="キャンセル"
+      {isDatePickerVisible && editingItem && (
+        <DateTimePicker
+          value={editingItem.date}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setDatePickerVisible(false);
+            if (selectedDate) {
+              const newData = displayData.map(d => d.id === editingItem.id ? { ...d, date: selectedDate } : d);
+              setDisplayData(newData);
+              handleSave(editingItem, editingItem.amount, editingItem.paid, selectedDate);
+            }
+          }}
         />
       )}
     </View>
