@@ -79,3 +79,4 @@ work/
 debikan/Gemfile.lock
 debikan/vendor/
 debikan/.bundle/
+debikan/ios/debikan.xcodeproj/project.xcworkspace/

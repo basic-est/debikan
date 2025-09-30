@@ -8,16 +8,25 @@ import {
   SafeAreaView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
+import appInfo from '../../app.json';
 
 interface SettingsScreenProps {
   onClose: () => void;
 }
 
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
+  const {version, buildNumber} = appInfo as {
+    version?: string;
+    buildNumber?: string;
+  };
+  const aboutVersionLine = buildNumber
+    ? `バージョン ${version ?? '不明'} (Build ${buildNumber})`
+    : `バージョン ${version ?? '不明'}`;
+
   const showAbout = () => {
     Alert.alert(
       'debikanについて',
-      'バージョン 0.1\n© 2025 Debikan App\nAll rights reserved.',
+      `${aboutVersionLine}\n© 2025 Debikan App\nAll rights reserved.`,
       [{ text: 'OK' }],
     );
   };
