@@ -76,3 +76,6 @@ yarn-error.log
 
 # Custom
 work/
+debikan/Gemfile.lock
+debikan/vendor/
+debikan/.bundle/
