@@ -4,33 +4,40 @@ const db = openDatabase({ name: 'debikan.db', location: 'default' });
 
 export const initDB = () => {
   return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS Items (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL,
-          account TEXT NOT NULL,
-          default_day INTEGER
-        );`,
-        [],
-        () => {
+    db.executeSql(
+      'PRAGMA foreign_keys = ON;',
+      [],
+      () => {
+        db.transaction((tx) => {
           tx.executeSql(
-            `CREATE TABLE IF NOT EXISTS MonthlyAmounts (
+            `CREATE TABLE IF NOT EXISTS Items (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
-              item_id INTEGER,
-              date TEXT NOT NULL,
-              amount INTEGER NOT NULL,
-              paid BOOLEAN DEFAULT 0,
-              FOREIGN KEY (item_id) REFERENCES Items (id) ON DELETE CASCADE
+              name TEXT NOT NULL,
+              account TEXT NOT NULL,
+              default_day INTEGER
             );`,
             [],
-            () => resolve(),
+            () => {
+              tx.executeSql(
+                `CREATE TABLE IF NOT EXISTS MonthlyAmounts (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  item_id INTEGER,
+                  date TEXT NOT NULL,
+                  amount INTEGER NOT NULL,
+                  paid BOOLEAN DEFAULT 0,
+                  FOREIGN KEY (item_id) REFERENCES Items (id) ON DELETE CASCADE
+                );`,
+                [],
+                () => resolve(),
+                (_, err) => reject(err)
+              );
+            },
             (_, err) => reject(err)
           );
-        },
-        (_, err) => reject(err)
-      );
-    });
+        });
+      },
+      (_, err) => reject(err)
+    );
   });
 };
 
